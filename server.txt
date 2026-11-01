@@ -1,0 +1,15 @@
+[Unit]
+Description=Online Server
+After=network.target
+
+[Service]
+Type=simple
+User=xxx
+WorkingDirectory=/usr/local/www
+Environment="GOMEMLIMIT=3GiB"
+Environment="GOGC=50"
+ExecStart=/usr/local/www/online_server
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

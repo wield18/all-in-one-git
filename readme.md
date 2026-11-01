@@ -1,0 +1,213 @@
+这是一个简单的 user-video-comment 服务。
+
+下面只说明部分需要解释的文件、原始目录结构，以及它们与生成的 online_server 启动文件、对应 html 部分的对应关系, server.txt, config.yaml示例
+
+别问我为什么不给原始程序——问就是有些常量没删干净，真要用的话（我在跑路啊，这个初始版本谁会闲着用），还是去 git 留言问作者吧，要改的太多了 -_-
+
+个人页面地址：http://122.51.184.238/ ，打算搞个域名加 HTTPS，但目前我给路人也只有一个页面能访问 /video/RandomRecommendVideo，可以看视频，其他功能都没了。想闲着没事注册的话，问问作者。
+
+其实主要还是想求职用
+
+**目录说明**
+
+- `cmd`：一套直接测试使用的文件
+- `config`：所有结构体
+- `internal`：所有内部服务
+  - `base`：基础初始化示例
+    - `constant`：所有常量
+  - `consume_router`：二层消费路由，其实就是自己写的异步执行的任务
+  - `entity`：所有结构体
+  - `local`：基于 base 继续初始化的实例，全局使用
+  - `middleware`：中间件
+  - `repository`：对内服务交互的部分
+  - `router`：路由
+  - `service`：主要逻辑部分
+- `pkg`：外部服务或自研服务
+  - `consumer`：一个异步批量执行任务
+  - `storage`：存储服务
+  - `ekit`：实用工具部分
+    - `captcha`：验证码图片
+    - `cipherx`：密码哈希
+    - `http_err`：基础的携带 http code 的 err
+    - `randx`：随机字符
+    - `slogx`：日志使用
+    - `validatorx`：验证器
+  - `emailqq`：qq 邮箱
+  - `es`：前置查询库
+  - `mysqlx`：数据库
+  - `redisx`：查询及临时数据
+- `server.txt`: 示例systemctl服务,启动者确保有权限
+
+**目录结构**
+
+```
+all-in-one/
+├── cmd/
+│   ├── http_server/
+│   │   ├── main.go
+│   │   └── main_test.go
+│   ├── online_server/
+│   │   ├── conf.yaml
+│   │   └── main.go
+│   ├── ram_server/
+│   │   ├── conf.yaml
+│   │   ├── copy.go
+│   │   ├── log.log
+│   │   ├── main.go
+│   │   ├── main_test.go
+│   │   └── state.log
+│   └── test_setver/
+│       ├── internal/
+│       │   └── router.go
+│       ├── test/
+│       ├── main.go
+│       └── main_test.go
+├── config/
+│   └── config.go
+├── internal/
+│   ├── base/
+│   │   ├── constant/
+│   │   │   └── constant.go
+│   │   ├── test/
+│   │   │   └── abc_test.go
+│   │   ├── apis.go
+│   │   ├── err.go
+│   │   ├── func.go
+│   │   ├── geoip.go
+│   │   ├── keys.go
+│   │   ├── re_validate.go
+│   │   ├── slice.go
+│   │   ├── slog.go
+│   │   └── video.go
+│   ├── consume_router/
+│   │   ├── consume_testing.go
+│   │   └── router.go
+│   ├── entity/
+│   │   ├── migrate/
+│   │   │   └── main.go
+│   │   ├── validate/
+│   │   │   └── validate.go
+│   │   ├── common.go
+│   │   ├── common_func.go
+│   │   ├── copy.go
+│   │   ├── func.go
+│   │   ├── redis.go
+│   │   ├── type.go
+│   │   ├── user.go
+│   │   ├── user_db_options.go
+│   │   ├── user_trasmit.go
+│   │   ├── video.go
+│   │   ├── video_db_options.go
+│   │   └── video_transmit.go
+│   ├── local/
+│   │   ├── count_ticker/
+│   │   │   ├── active.go
+│   │   │   └── view.go
+│   │   ├── token_storage/
+│   │   │   ├── err.go
+│   │   │   └── token_storage.go
+│   │   ├── video_buf/
+│   │   │   ├── es_search.go
+│   │   │   ├── option.go
+│   │   │   ├── video_buf.go
+│   │   │   └── video_buf_test.go
+│   │   └── apis.go
+│   ├── middleware/
+│   │   ├── test/
+│   │   │   └── abc.go
+│   │   ├── bind.go
+│   │   ├── common.go
+│   │   └── err.go
+│   ├── repository/
+│   │   ├── test/
+│   │   │   └── test_test.go
+│   │   ├── copy.go
+│   │   ├── emailqq.go
+│   │   ├── es.go
+│   │   ├── mysql.go
+│   │   ├── redis.go
+│   │   ├── struct.go
+│   │   ├── user_mysql.go
+│   │   └── view_mysql.go
+│   ├── router/
+│   │   ├── router.go
+│   │   └── wraps.go
+│   └── service/
+│       ├── comment.go
+│       ├── common.go
+│       ├── copy.go
+│       ├── func.go
+│       ├── ierr.go
+│       ├── other.go
+│       ├── user.go
+│       └── video.go
+├── pkg/
+│   ├── consumer/
+│   │   ├── constant.go
+│   │   ├── consume_data.go
+│   │   ├── consume_func.go
+│   │   ├── consumer.go
+│   │   ├── consumer_builder.go
+│   │   ├── consumer_pool.go
+│   │   ├── consumer_pool_test.go
+│   │   ├── consumer_test.go
+│   │   ├── err.go
+│   │   ├── readme.md
+│   │   ├── signal_pool.go
+│   │   ├── signal_pool_builder.go
+│   │   └── signal_pool_test.go
+│   ├── ekit/
+│   │   ├── captcha/
+│   │   │   ├── captcha.go
+│   │   │   └── test_test.go
+│   │   ├── cipherx/
+│   │   │   ├── cipher.go
+│   │   │   └── cipher_test.go
+│   │   ├── http_err/
+│   │   │   ├── constant.go
+│   │   │   ├── err.go
+│   │   │   └── err_test.go
+│   │   ├── randx/
+│   │   │   └── rand_code.go
+│   │   ├── slogx/
+│   │   │   └── slog.go
+│   │   └── validatorx/
+│   │       ├── validator.go
+│   │       └── validator_test.go
+│   ├── emailqq/
+│   │   └── emailqq.go
+│   ├── es/
+│   │   └── es.go
+│   ├── mysqlx/
+│   │   ├── mysql.go
+│   │   └── slog.go
+│   ├── redisx/
+│   │   ├── hook.go
+│   │   └── redis.go
+│   └── storage/
+│       ├── abc.go
+│       ├── abc_test.go
+│       ├── state.ini
+│       └── storages.go
+├── test/
+│   ├── test/
+│   │   ├── copy.go
+│   │   └── test_test.go
+│   ├── test1/
+│   │   ├── GetLocation.js
+│   │   ├── Login.js
+│   │   ├── Register.js
+│   │   ├── b64s.png
+│   │   ├── copy.go
+│   │   ├── html_test.go
+│   │   ├── input.html
+│   │   ├── input.png
+│   │   ├── output-get-search.html
+│   │   ├── output-post.html
+│   │   ├── output.html
+│   │   └── output.png
+│   └── test_test.go
+├── go.mod
+├── go.sum
+└── server.txt
+```
