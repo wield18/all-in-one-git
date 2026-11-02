@@ -17,119 +17,6 @@ type ConsumerPool struct {
 	rwmu   sync.RWMutex // 保证线程安全
 }
 
-// 这会没有类型安全 NewConsumeData 需要类型
-// BlockSubmitNoCallback
-// 只需要传consume层对应的data就行
-// func (p *ConsumerPool) BlockSubmitNoCallback(topic string, data any) httperr.IError {
-// 	var err httperr.IError
-// 	ch := make(chan struct{}, 1)
-// 	defer close(ch)
-// 	dat := NewConsumeData(data, func(data interface{}, e httperr.IError) {
-// 		err = e
-// 		ch <- struct{}{}
-// 	})
-// 	// 这里边锁了
-// 	p.Submit(topic, dat)
-// 	// 我得等它执行完说白了
-// 	<-ch
-// 	return err
-// }
-
-// BlockSubmitManyNoCallBack 基本一个topic发多个
-// 没有东西传过来或者说传过来的东西验证不通过直接panic
-// 返回的err只有可能是 errCtxDone
-// func (p *ConsumerPool) BlockSubmitManyNoCallBack(topic string, datas []any) []httperr.IError {
-// 	l := len(datas)
-// 	if l == 0 {
-// 		panic(errNoData)
-// 	}
-// 	// topic检查
-// 	consumer, err := p.check(topic)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	ch := make(chan struct{}, 1)
-// 	errs := make([]httperr.IError, l)
-// 	defer close(ch)
-// 	// 先检查并包装函数
-// 	for i, data := range datas {
-// 		// 这里构建dat
-// 		dat := NewConsumeData(data, func(data interface{}, e httperr.IError) {
-// 			errs[i] = e
-// 			ch <- struct{}{}
-// 		})
-// 		err = consumer.check(dat)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		// 检查完得从新赋值
-// 		datas[i] = dat
-// 	}
-// 	// 启动所有,因为预先进行了所有的检查
-// 	// 这里边不可能panic
-// 	// 这里需要锁是因为 直接调用内部 没有锁保护
-// 	p.rwmu.RLock()
-// 	select {
-// 	case <-p.ctx.Done():
-// 		for i := 0; i < l; i++ {
-// 			errs[i] = errCtxDone
-// 		}
-// 		return errs
-// 	default:
-// 	}
-// 	for _, data := range datas {
-// 		consumer.submit(data) // 直接调用内部
-// 	}
-// 	p.rwmu.RUnlock()
-
-// 	// 等待所有
-// 	for i := 0; i < l; i++ {
-// 		<-ch
-// 	}
-// 	return errs
-// }
-
-// BlockSubmitManyByPair 一次发送多个
-// 因为是pair写法,所以不好初始化,但效果是能发任意的topic任意的data
-// 这个err只有检查错误
-// 如果没有任何pair直接返回
-// func (p *ConsumerPool) BlockSubmitManyByPairNoCallBack(datas ...TopicAndPureData) []httperr.IError {
-// 	l := len(datas)
-// 	if l == 0 {
-// 		panic(errNoData)
-// 	}
-// 	var err error
-// 	ch := make(chan struct{}, 1)
-// 	errs := make([]httperr.IError, l)
-// 	defer close(ch)
-// 	// 先检查并包装函数
-// 	for i, data := range datas {
-
-// 		dat := NewConsumeData(data, func(data interface{}, e httperr.IError) {
-// 			errs[i] = e
-// 			ch <- struct{}{}
-// 		})
-// 		// 必须调用池子的check
-// 		err = p.Check(data.Topic, dat)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		// 重新赋值
-// 		datas[i].Data = dat
-
-// 	}
-// 	// 启动所有,因为预先进行了所有的检查,这里不可能有发送错误
-// 	// 内部锁了
-// 	for _, data := range datas {
-// 		p.Submit(data.Topic, data.Data.(ConsumeDataInterface))
-// 	}
-// 	// 等待所有
-// 	for i := 0; i < l; i++ {
-// 		<-ch
-// 	}
-// 	return errs
-// }
-
 // BlockSubmitNoCallback
 // 只需要传consume层对应的data就行
 func (p *ConsumerPool) BlockSubmit(topic string, data ConsumeDataInterface) httperr.IError {
@@ -362,18 +249,6 @@ func (p *ConsumerPool) ShutDown() {
 	p.rwmu.Lock()
 	defer p.rwmu.Unlock()
 	p.cancel()
-}
-
-// NewConsumerPoolByMap
-// 这里禁止传入 空topic(string) 跟 nil(CunsumerInterface)
-// 后果自负
-func NewConsumerPoolByMap(aMap map[string]CunsumerInterface) *ConsumerPool {
-	ctx, cancel := context.WithCancel(context.Background())
-	return &ConsumerPool{
-		ctx:    ctx,
-		cancel: cancel,
-		aMap:   aMap,
-	}
 }
 
 // 一个新的pool没有任何东西

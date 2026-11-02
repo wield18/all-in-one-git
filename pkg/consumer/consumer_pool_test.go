@@ -1,8 +1,10 @@
 package consumer
 
 import (
+	httperr "all-in-one/pkg/ekit/http_err"
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -65,13 +67,8 @@ const (
 	topicTest = "test"
 )
 
-type keyValue struct {
-	Key   string
-	Value string
-}
-
 // 这里为何不成功也是因为拿旧索引来初始化了
-func register(p *ConsumerPool, signal *Signal[string]) {
+func register1(p *ConsumerPool, signal *Signal[string]) {
 	{
 		p.Register(topicTest,
 			NewSignalConsumer[keyValue](signal).
@@ -89,7 +86,7 @@ func consumeKeyValue(ctx context.Context, datas []*ConsumeData[keyValue]) {
 
 func TestConsumerPool(t *testing.T) {
 	p := NewConsumerPool()
-	register(p, NewSignal[string](100))
+	register1(p, NewSignal[string](100))
 	p.StartTicker()
 	err := p.BlockSubmit(topicTest, NewConsumeDataNilCallBack(keyValue{
 		Key:   "gaojian",
@@ -103,6 +100,57 @@ func TestConsumerPool(t *testing.T) {
 	// but gain &consumer.ConsumeData[interface {}]{Data:consumer.keyValue{Key:"gaojian", Value:"val"}, callbacker:(consumer.ConsumeCallBackerInter)(0x7ff60e073980), Err:httperr.IError{HttpCode:0, HttpErr:"", InnerCode:0, Msg:""}} [recovered, repanicked]
 	p.ShutDown()
 	time.Sleep(time.Second)
+}
+
+func TestIntance(*testing.T) {
+	p := NewConsumerPool()
+	signal := NewSignal[string](100)
+	register(p, signal)
+	p.StartTicker()
+	for i := 0; i < 10; i++ {
+		p.Submit("TopicTest", NewConsumeData(keyValue{Key: "key-" + strconv.Itoa(i), Value: "value-" + strconv.Itoa(i)},
+			func(data interface{}, e httperr.IError) {
+				if !e.IsZero() {
+					dat := data.(keyValue)
+					fmt.Println(dat.Key)
+					fmt.Println(dat.Value)
+				}
+
+			}))
+	}
+	err := p.BlockSubmit("TopicTest", NewConsumeData(keyValue{Key: "key-end", Value: "value-end"}, nil))
+	if !err.IsZero() {
+		fmt.Println("end")
+	}
+	p.ShutDown()
+}
+
+type keyValue struct {
+	Key   string
+	Value string
+}
+
+// 这里为何不成功也是因为拿旧索引来初始化了
+func register(p *ConsumerPool, signal *Signal[string]) {
+	TopicTest := "TopicTest"
+	{
+		p.Register(TopicTest,
+			NewSignalConsumer[keyValue](signal).
+				WithConsumerFunc(
+					ConsumeKeyValue,
+				).WithSize(12, 4, 1))
+	}
+}
+
+func ConsumeKeyValue(ctx context.Context, datas []*ConsumeData[keyValue]) {
+	dats := []keyValue{}
+	fmt.Println(dats)
+	for _, data := range datas {
+		dats = append(dats, data.Data)
+		fmt.Println(data.Data.Key)
+		fmt.Println(data.Data.Value)
+		data.WithErr(httperr.ErrBadGateway("nope"))
+	}
 }
 
 // // func TestConsumerPool2(t *testing.T) {

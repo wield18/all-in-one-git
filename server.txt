@@ -8,7 +8,7 @@ User=xxx
 WorkingDirectory=/usr/local/www
 Environment="GOMEMLIMIT=3GiB"
 Environment="GOGC=50"
-ExecStart=/usr/local/www/online_server
+ExecStart=/path/to/online_server
 Restart=on-failure
 
 [Install]

@@ -1,14 +1,13 @@
 这是一个简单的 user-video-comment 服务。
 
-下面只说明部分需要解释的文件、原始目录结构，以及它们与生成的 online_server 启动文件、对应 html 部分的对应关系, server.txt, config.yaml示例
-
-别问我为什么不给原始程序——问就是有些常量没删干净，真要用的话（我在跑路啊，这个初始版本谁会闲着用），还是去 git 留言问作者吧，要改的太多了 -_-
+下面只说明部分文件、对应 html 部分的对应关系, server.txt, config.yaml示例
 
 个人页面地址：http://122.51.184.238/ ，个人认为 域名 跟 HTTPS 只是真正上线必备但只是配一下就行，但目前我给路人也只有一个页面能访问 /video/RandomRecommendVideo，可以看视频，其他功能都没了。想闲着没事想试试其他的,问问作者
 
 其实主要还是想求职用,
-我给于./pkg/consumer的结构,个人实现感觉不错,虽说我没写它的监控部分,但效果可以,具体使用见./pkg/consumer/readme.md
-网关路由结构统一使用gin的中间件结构,请求写入统一 middleware.Result 写入
+./pkg/consumer,个人实现感觉不错,虽说我没写它的监控部分,但效果可以,具体使用见./pkg/consumer/readme.md
+网关使用openresty,编写部分lua
+路由结构统一使用gin的中间件结构,请求写入统一 middleware.Result 写入
 前端页面是直接deep生成的模板加简单配置
 
 **目录说明**
@@ -44,16 +43,15 @@
 **目录结构**
 
 ```
-all-in-one/
+all-in-one-git/
 ├── cmd/
 │   ├── http_server/
 │   │   ├── main.go
 │   │   └── main_test.go
 │   ├── online_server/
-│   │   ├── conf.yaml
 │   │   └── main.go
 │   ├── ram_server/
-│   │   ├── conf.yaml
+│   │   ├── constant.go
 │   │   ├── copy.go
 │   │   ├── log.log
 │   │   ├── main.go
@@ -71,6 +69,8 @@ all-in-one/
 │   ├── base/
 │   │   ├── constant/
 │   │   │   └── constant.go
+│   │   ├── no_use/
+│   │   │   └── abc.go.txt
 │   │   ├── test/
 │   │   │   └── abc_test.go
 │   │   ├── apis.go
@@ -144,6 +144,37 @@ all-in-one/
 │       ├── other.go
 │       ├── user.go
 │       └── video.go
+├── lua/
+│   └── redisx/
+│       ├── append.lua
+│       ├── client.lua
+│       ├── del.lua
+│       ├── errors.lua
+│       ├── get.lua
+│       ├── get_and_set.lua
+│       ├── get_or_mget.lua
+│       ├── incr.lua
+│       ├── incrby.lua
+│       ├── mget.lua
+│       ├── mset.lua
+│       ├── pcall.lua
+│       ├── print_result.lua
+│       ├── redis_util.lua
+│       ├── set.lua
+│       ├── set_all.lua
+│       ├── set_ex_or_nx.lua
+│       ├── set_test.lua
+│       ├── setex.lua
+│       ├── setnx.lua
+│       ├── validate_ZADD.lua
+│       ├── validate_base_func.lua
+│       ├── validate_not_empty_string.lua
+│       ├── with_del.lua
+│       ├── with_get.lua
+│       ├── with_list.lua
+│       ├── with_set.lua
+│       ├── with_sorted_set.lua
+│       └── with_string_set.lua
 ├── pkg/
 │   ├── consumer/
 │   │   ├── constant.go
@@ -190,27 +221,13 @@ all-in-one/
 │   └── storage/
 │       ├── abc.go
 │       ├── abc_test.go
-│       ├── state.ini
 │       └── storages.go
-├── test/
-│   ├── test/
-│   │   ├── copy.go
-│   │   └── test_test.go
-│   ├── test1/
-│   │   ├── GetLocation.js
-│   │   ├── Login.js
-│   │   ├── Register.js
-│   │   ├── b64s.png
-│   │   ├── copy.go
-│   │   ├── html_test.go
-│   │   ├── input.html
-│   │   ├── input.png
-│   │   ├── output-get-search.html
-│   │   ├── output-post.html
-│   │   ├── output.html
-│   │   └── output.png
-│   └── test_test.go
+├── trees/
+│   └── main.go
+├── LICENSE
 ├── go.mod
 ├── go.sum
+├── readme.md
+├── schema_only.sql
 └── server.txt
 ```

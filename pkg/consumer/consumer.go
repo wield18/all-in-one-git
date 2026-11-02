@@ -30,7 +30,7 @@ type CunsumerWithSignalInterface interface {
 type SignalConsumer[v any] struct {
 	tickerChan  chan struct{}        // ticker chan
 	dataChan    chan *ConsumeData[v] // 数据
-	betchSize   int                  // 每批数据
+	batchSize   int                  // 每批数据
 	signal      *Signal[string]      // 用户分级申请算力,这里不维护,上层会把对应的Signal传过来直接用
 	ctx         context.Context      // 主要是上层的ctx直接赋值,这是接口
 	weight      int64                // 单次申请需要多少算力
@@ -78,14 +78,14 @@ func (s *SignalConsumer[v]) shutDown() {
 	if l == 0 {
 		return
 	}
-	count := l / s.betchSize
+	count := l / s.batchSize
 	// 也可能正好被除尽
 	for i := 0; i < count; i++ {
-		go s.consume(datas[s.betchSize*i : s.betchSize*(i+1)])
+		go s.consume(datas[s.batchSize*i : s.batchSize*(i+1)])
 	}
 	// 这里必须得有数据时才行
-	if l%s.betchSize != 0 {
-		go s.consume(datas[s.betchSize*(count):])
+	if l%s.batchSize != 0 {
+		go s.consume(datas[s.batchSize*(count):])
 	}
 }
 
@@ -110,7 +110,7 @@ func (s *SignalConsumer[v]) startListening(ctx context.Context) {
 				datas = append(datas, data)
 				// 如果想搁这运行获得的这个datas不能直接传
 				// 或者说我定义个其他方法来
-				if len(datas) == s.betchSize {
+				if len(datas) == s.batchSize {
 					go s.consume(datas)
 					datas = make([]*ConsumeData[v], 0) // 重置
 				}

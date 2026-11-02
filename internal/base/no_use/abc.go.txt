@@ -1,0 +1,49 @@
+package nouse
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+)
+
+// 解构类似
+// "Chromium";v="152", "Not?A_Brand";v="24", "Google Chrome";v="152"
+func ParseClientHints(s string) map[string]string {
+	result := make(map[string]string)
+	// 按逗号分割成各个品牌项
+	for _, item := range strings.Split(s, ",") {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			continue
+		}
+		// 按分号分割品牌和版本
+		parts := strings.SplitN(item, ";", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		brand := strings.Trim(strings.TrimSpace(parts[0]), `"`)
+		ver := strings.TrimSpace(parts[1])
+		// 去掉 v=" 和结尾的 "
+		ver = strings.TrimPrefix(ver, "v=")
+		ver = strings.Trim(ver, `"`)
+		result[brand] = ver
+	}
+	return result
+}
+
+// 生成
+// "Chromium";v="152", "Not?A_Brand";v="24", "Google Chrome";v="152"
+func FormatClientHints(m map[string]string) string {
+	// 先取出所有 key 并排序，保证输出稳定
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	parts := make([]string, 0, len(m))
+	for _, k := range keys {
+		parts = append(parts, fmt.Sprintf(`"%s";v="%s"`, k, m[k]))
+	}
+	return strings.Join(parts, ", ")
+}

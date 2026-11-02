@@ -1,0 +1,64 @@
+Server:
+ ServerName: Gaojian
+ Address: localhost
+ Port: :1234
+ Model: release # debug模式
+ FrontAddress: http://127.0.0.1:80
+#  FrontAddress: http://127.0.0.1:80
+Keys:
+ AES-GCM-DB: 12345678901234567890123456789012 # 存储加密
+ HMAS: gaojian # 存储哈希列的盐
+ CryptoKey: 1234567890123456
+
+TheOther:
+ Geoip2MMDB: /path/to/dbip-city-lite.mmdb
+ SuperID: 123456
+ StoragePath: /path/to/
+ StorageStatePath: /path/to/state-storage.log
+ 
+ES:
+ Address: http://127.0.0.1:9200
+ Username: elastic
+ Password: xxx
+ 
+QQ:
+ From: xx@qq.com 
+ Code: xx
+ Host: smtp.qq.com
+ Port: 587
+
+
+Mysql:
+ Dialects: mysql
+ Host: 127.0.0.1
+ Port: 3306
+ DB: test
+ Username: xx
+ Password: xxx
+ Charset: utf8
+ MaxIdle: 1
+ MaxOpen: 3
+
+Redis:
+ Address: 127.0.0.1:6379
+ # address: 127.0.0.1:6379
+ Password: xxx
+ DB: 0
+ PoolSize: 10
+
+
+Slog:
+ FileName: /path/to/log.log
+ MaxSize: 100
+ MaxBackups: 30
+ MaxAge: 30
+ StateFileName: /path/to/state-slog.log
+
+Captcha:
+ Height: 80
+ Width: 240
+ Length: 5 
+ MaxSkew: 0.7 
+ DotCount: 80 
+
+

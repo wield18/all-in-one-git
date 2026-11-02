@@ -7,6 +7,9 @@ func NewSignalConsumer[v any](signal *Signal[string]) *SignalConsumer[v] {
 	}
 }
 
+// dataChanSize 单个消费者的消费chan大小,
+// betchSize 单次消费的批量大小
+// weight 单次消费需要申请多少算力
 func (c *SignalConsumer[v]) WithSize(dataChanSize, betchSize, weight int) *SignalConsumer[v] {
 	if dataChanSize < minimumDataChanSize {
 		dataChanSize = minimumDataChanSize
@@ -17,7 +20,7 @@ func (c *SignalConsumer[v]) WithSize(dataChanSize, betchSize, weight int) *Signa
 	if weight < 1 {
 		weight = 1
 	}
-	c.betchSize = betchSize
+	c.batchSize = betchSize
 	c.dataChan = make(chan *ConsumeData[v], dataChanSize)
 	c.weight = int64(weight)
 	return c
