@@ -9,6 +9,7 @@
 其实主要还是想求职用,
 我给于./pkg/consumer的结构,个人实现感觉不错,虽说我没写它的监控部分,但效果可以,具体使用见./pkg/consumer/readme.md
 网关路由结构统一使用gin的中间件结构,请求写入统一 middleware.Result 写入
+前端页面是直接deep生成的模板加简单配置
 
 **目录说明**
 
